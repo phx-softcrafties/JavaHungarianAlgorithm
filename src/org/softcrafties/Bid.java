@@ -54,8 +54,9 @@ public class Bid {
         return task;
     }
     
-    public boolean isTight(double resourcePotential, double taskPotential) {
-        return Math.abs(cost - resourcePotential - taskPotential) < 1e-14;
+
+    public Double getCost() {
+        return cost;
     }
 
 }

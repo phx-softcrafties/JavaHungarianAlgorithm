@@ -42,6 +42,7 @@ public class SituationFactory {
     public HungarianAlgorithm createWithOneMatch() {
         HungarianAlgorithm hungarian =
                 new HungarianAlgorithm(resources, tasks, bids);
+        hungarian.increasePotential(jim, 1.0);
         hungarian.match(jimBathroomBid);
         return hungarian;
     }

@@ -2,6 +2,7 @@ package org.softcrafties;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,16 +40,29 @@ public class HungarianAlgorithm {
         for (Task task : tasks) {
             taskPotential.put(task, 0.0);
         }
-        
+
         looseBids = new HashSet<Bid>(bids);
         matchedBids = new HashSet<Bid>(bids.size());
         tightBids = new HashSet<Bid>(bids.size());
-        for (Bid bid : bids) {
-            if (bid.isTight(0.0, 0.0)) {
+        findTightBids();
+    }
+
+    public void findTightBids() {
+        Iterator<Bid> iterator = looseBids.iterator();
+        while (iterator.hasNext()) {
+            Bid bid = iterator.next();
+            if (bidIsTight(bid)) {
                 tightBids.add(bid);
-                looseBids.remove(bid);
+                iterator.remove();
             }
         }
+    }
+
+    public boolean bidIsTight(Bid bid) {
+        double difference = bid.getCost()
+                - resourcePotential.get(bid.getResource())
+                - taskPotential.get(bid.getTask());
+        return Math.abs(difference) < 1e-14;
     }
 
     public void match(Bid bid) {
@@ -57,6 +71,15 @@ public class HungarianAlgorithm {
         }
         if (!looseBids.contains(bid) && !tightBids.contains(bid)) {
             throw new AssertionError("Unknown key: " + bid);
+        }
+        if (!tightBids.contains(bid)) {
+            
+            String message = "Cannot match loose bid: " + bid;
+            message += "\n  (resource potential = " +   
+                    resourcePotential.get(bid.getResource());
+            message += ", task potential = " +
+                    taskPotential.get(bid.getTask()) + ")";
+            throw new AssertionError(message);
         }
         Resource resource = bid.getResource();
         if (!freeResources.contains(resource)) {
@@ -82,13 +105,7 @@ public class HungarianAlgorithm {
         }
         Resource resource = bid.getResource();
         Task task = bid.getTask();
-        if (bid.isTight(
-                resourcePotential.get(resource), 
-                taskPotential.get(task))) {
-            tightBids.add(bid);
-        } else {
-            looseBids.add(bid);
-        }
+        tightBids.add(bid);
         matchedBids.remove(bid);
         freeResources.add(resource);
         freeTasks.add(task);
@@ -98,6 +115,18 @@ public class HungarianAlgorithm {
         reachableResources.clear();
         reachableTasks.clear();
         reachableTasks.addAll(freeTasks);
+    }
+
+    public void increasePotential(Resource resource, double increment) {
+        double value = resourcePotential.get(resource) + increment;
+        resourcePotential.put(resource, value);
+        findTightBids();
+    }
+
+    public void increasePotential(Task task, double increment) {
+        double value = taskPotential.get(task) + increment;
+        taskPotential.put(task, value);
+        findTightBids();
     }
 
     public Set<Resource> getUnassignedResources() {
@@ -111,5 +140,8 @@ public class HungarianAlgorithm {
     public Set<Task> getReachableTasks() {
         return reachableTasks;
     }
-    
+
+    public Set<Resource> getReachableResources() {
+        return reachableResources;
+    }
 }

@@ -38,7 +38,7 @@ public class HungarianTest {
     }
 
     @Test
-    public void testReachableTasks() {
+    public void testReachableTasksWithOneMatch() {
         HungarianAlgorithm hungarian = factory.createWithOneMatch();
         hungarian.visitFromFreeTasks();
         Set<Task> reachableTasks = hungarian.getReachableTasks();
@@ -46,6 +46,15 @@ public class HungarianTest {
         expect.add(factory.floors);
         expect.add(factory.windows);
         assertEquals(expect, reachableTasks);
+    }
+    
+    @Test
+    public void testReachableResourcesWithOneMatch() {
+        HungarianAlgorithm hungarian = factory.createWithOneMatch();
+        hungarian.visitFromFreeTasks();
+        Set<Resource> reachableResources = hungarian.getReachableResources();
+        Set<Resource> expect = new HashSet<Resource>();
+        assertEquals(expect, reachableResources);
     }
 
 }
