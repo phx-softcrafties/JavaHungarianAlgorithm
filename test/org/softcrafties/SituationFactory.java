@@ -39,10 +39,14 @@ public class SituationFactory {
         return hungarian;
     }
 
-    public HungarianAlgorithm createWithOneMatch() {
-        HungarianAlgorithm hungarian =
-                new HungarianAlgorithm(resources, tasks, bids);
+    public HungarianAlgorithm createWithOneTightBid() {
+        HungarianAlgorithm hungarian = createInitialState();
         hungarian.increasePotential(jim, 1.0);
+        return hungarian;
+    }
+
+    public HungarianAlgorithm createWithOneMatch() {
+        HungarianAlgorithm hungarian = createWithOneTightBid();
         hungarian.match(jimBathroomBid);
         return hungarian;
     }

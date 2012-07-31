@@ -38,6 +38,28 @@ public class HungarianTest {
     }
 
     @Test
+    public void testReachableTasksWithOneTightBid() {
+        HungarianAlgorithm hungarian = factory.createWithOneTightBid();
+        hungarian.visitFromFreeTasks();
+        Set<Task> reachableTasks = hungarian.getReachableTasks();
+        Set<Task> expect = new HashSet<Task>();
+        expect.add(factory.bathroom);
+        expect.add(factory.floors);
+        expect.add(factory.windows);
+        assertEquals(expect, reachableTasks);
+    }
+    
+    @Test
+    public void testReachableResourcesWithOneTightBid() {
+        HungarianAlgorithm hungarian = factory.createWithOneTightBid();
+        hungarian.visitFromFreeTasks();
+        Set<Resource> reachableResources = hungarian.getReachableResources();
+        Set<Resource> expect = new HashSet<Resource>();
+        expect.add(factory.jim);
+        assertEquals(expect, reachableResources);
+    }
+    
+    @Test
     public void testReachableTasksWithOneMatch() {
         HungarianAlgorithm hungarian = factory.createWithOneMatch();
         hungarian.visitFromFreeTasks();

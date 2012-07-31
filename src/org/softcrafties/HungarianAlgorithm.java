@@ -115,6 +115,36 @@ public class HungarianAlgorithm {
         reachableResources.clear();
         reachableTasks.clear();
         reachableTasks.addAll(freeTasks);
+        tasksToVisit.addAll(freeTasks);
+        visitTasks();
+    }
+
+    public void visitTasks() {
+        for (Bid bid : tightBids) {
+            if (tasksToVisit.contains(bid.getTask())) {
+                Resource resource = bid.getResource();
+                reachableResources.add(resource);
+                resourcesToVisit.add(resource);
+            }
+        }
+        tasksToVisit.clear();
+        if (!resourcesToVisit.isEmpty()) {
+            visitResources();
+        }
+    }
+
+    private void visitResources() {
+        for (Bid bid : matchedBids) {
+            if (resourcesToVisit.contains(bid.getResource())) {
+                Task resource = bid.getTask();
+                reachableTasks.add(resource);
+                tasksToVisit.add(resource);
+            }
+        }
+        resourcesToVisit.clear();
+        if (!tasksToVisit.isEmpty()) {
+            visitTasks();
+        }
     }
 
     public void increasePotential(Resource resource, double increment) {
