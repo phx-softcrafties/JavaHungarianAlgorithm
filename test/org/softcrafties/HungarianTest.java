@@ -78,5 +78,23 @@ public class HungarianTest {
         Set<Resource> expect = new HashSet<Resource>();
         assertEquals(expect, reachableResources);
     }
+    
+    @Test
+    public void testForAlternatingPathWithOneTightBid() {
+        HungarianAlgorithm hungarian = factory.createWithOneTightBid();
+        hungarian.visitFromFreeTasks();
+        Resource actual = hungarian.findAlternatingPath();
+        assertEquals(factory.jim, actual);
+    }
+    
+    @Test
+    public void testAlternatePath() {
+        HungarianAlgorithm hungarian = factory.createWithOneTightBid();
+        hungarian.alternatePath(factory.jim);
+        Set<Bid> matchedBids = hungarian.getMatchedBids();
+        Set<Bid> expect = new HashSet<Bid>();
+        expect.add(factory.jimBathroomBid);
+        assertEquals(expect, matchedBids);
+    }
 
 }

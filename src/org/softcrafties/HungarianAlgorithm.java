@@ -11,16 +11,16 @@ public class HungarianAlgorithm {
     private Set<Resource> resources;
     private Set<Resource> freeResources;
     private Set<Resource> resourcesToVisit;
+    private Set<Resource> reachableResources;
     private Map<Resource,Double> resourcePotential;
     private Set<Task> tasks;
     private Set<Task> freeTasks;
+    private Set<Task> reachableTasks;
     private Set<Task> tasksToVisit;
     private Map<Task,Double> taskPotential;
     private Set<Bid> looseBids;
     private Set<Bid> matchedBids;
     private Set<Bid> tightBids;
-    private HashSet<Resource> reachableResources;
-    private HashSet<Task> reachableTasks;
 
     public HungarianAlgorithm(Set<Resource> resources, Set<Task> tasks, Set<Bid> bids) {
         this.resources = resources;
@@ -173,5 +173,42 @@ public class HungarianAlgorithm {
 
     public Set<Resource> getReachableResources() {
         return reachableResources;
+    }
+
+    public Resource findAlternatingPath() {
+        Resource endpoint = null;
+        HashSet<Resource> intersection = new HashSet<Resource>(reachableResources);
+        System.out.println(intersection);
+        intersection.retainAll(freeResources);
+        System.out.println(intersection);
+        if (!intersection.isEmpty()) {
+            endpoint = intersection.iterator().next();
+        }
+        return endpoint;
+    }
+
+    public Set<Bid> getMatchedBids() {
+        return matchedBids;
+    }
+
+    public void alternatePath(Resource start) {
+        freeResources.remove(start);
+        Bid bid = findTightBidFromResource(start);
+        tightBids.remove(bid);
+        matchedBids.add(bid);
+        Task task = bid.getTask();
+        freeTasks.remove(task);
+    }
+
+    public Bid findTightBidFromResource(Resource resource) {
+        Bid found = null;
+        Iterator<Bid> iterator = tightBids.iterator();
+        while (found==null && iterator.hasNext()) {
+            Bid bid = iterator.next();
+            if (bid.getResource() == resource) {
+                found = bid;
+            }
+        }
+        return found;
     }
 }
