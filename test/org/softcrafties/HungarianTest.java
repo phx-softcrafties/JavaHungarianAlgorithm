@@ -122,7 +122,7 @@ public class HungarianTest {
     }
     
     @Test
-    public void testOptimalMatchFromInitialState() {
+    public void testAssignmentFromInitialState() {
         HungarianAlgorithm hungarian = factory.createInitialState();
         hungarian.solve();
         Set<Bid> solution = hungarian.getMatchedBids();
@@ -132,5 +132,25 @@ public class HungarianTest {
         expect.add(factory.alanWindowsBid); 
         assertEquals(expect, solution);
     }
-    
+
+    @Test
+    public void testMinimumCostFromToughProblem() {
+        HungarianAlgorithm hungarian = factory.createToughProblem();
+        hungarian.solve();
+        double cost = hungarian.getTotalCost();
+        assertEquals(10.0, cost, 1e-14);
+    }
+
+    @Test
+    public void testAssignmentFromToughProblem() {
+        HungarianAlgorithm hungarian = factory.createToughProblem();
+        hungarian.solve();
+        Set<Bid> solution = hungarian.getMatchedBids();
+        Set<Bid> expect = new HashSet<Bid>();
+        expect.add(factory.jimFloorsBid);
+        expect.add(factory.steveBathroomBid);
+        expect.add(factory.alanWindowsBid); 
+        assertEquals(expect, solution);
+    }
+
 }

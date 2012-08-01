@@ -50,6 +50,22 @@ public class SituationFactory {
         hungarian.match(jimBathroomBid);
         return hungarian;
     }
+    
+    public HungarianAlgorithm createToughProblem() {
+//      9.0, 5.0, 4.0
+//      3.0, 2.0, 2.0
+//      5.0, 4.0, 2.0
+        jimBathroomBid.setCost(9.0);
+        jimFloorsBid.setCost(5.0);
+        jimWindowsBid.setCost(4.0);
+        steveBathroomBid.setCost(3.0);
+        steveFloorsBid.setCost(2.0);
+        steveWindowsBid.setCost(2.0);
+        alanBathroomBid.setCost(5.0);
+        alanFloorsBid.setCost(4.0);
+        alanWindowsBid.setCost(2.0);
+        return createInitialState();
+    }
 
     private void setResources() {
         resources = new HashSet<Resource>();

@@ -50,6 +50,7 @@ public class HungarianAlgorithm {
     }
 
     public void visitFromFreeTasks() {
+        findTightBids();
         reachableResources.clear();
         reachableTasks.clear();
         reachableTasks.addAll(freeTasks);
@@ -69,10 +70,21 @@ public class HungarianAlgorithm {
 
     public void alternatePath(Resource start) {
         freeResources.remove(start);
-        Bid bid = findTightBidFromResource(start);
-        tightBids.remove(bid);
-        matchedBids.add(bid);
-        Task task = bid.getTask();
+        Bid tightBid = findTightBidFromResource(start);
+        Task task = tightBid.getTask();
+        Bid matchedBid = findMatchedBidFromTask(task);
+        tightBids.remove(tightBid);
+        matchedBids.add(tightBid);
+        while (matchedBid != null) {
+            Resource resource = matchedBid.getResource();
+            tightBid = findTightBidFromResource(resource);
+            matchedBids.remove(matchedBid);
+            tightBids.add(matchedBid);
+            task = tightBid.getTask();
+            matchedBid = findMatchedBidFromTask(task);
+            tightBids.remove(tightBid);
+            matchedBids.add(tightBid);
+        }
         freeTasks.remove(task);
     }
 
@@ -122,8 +134,10 @@ public class HungarianAlgorithm {
         for (Bid bid : tightBids) {
             if (tasksToVisit.contains(bid.getTask())) {
                 Resource resource = bid.getResource();
-                reachableResources.add(resource);
-                resourcesToVisit.add(resource);
+                if (!reachableResources.contains(resource)) {
+                    reachableResources.add(resource);
+                    resourcesToVisit.add(resource);
+                }
             }
         }
         tasksToVisit.clear();
@@ -136,8 +150,10 @@ public class HungarianAlgorithm {
         for (Bid bid : matchedBids) {
             if (resourcesToVisit.contains(bid.getResource())) {
                 Task task = bid.getTask();
-                reachableTasks.add(task);
-                tasksToVisit.add(task);
+                if (!reachableTasks.contains(task)) {
+                    reachableTasks.add(task);
+                    tasksToVisit.add(task);
+                }
             }
         }
         resourcesToVisit.clear();
@@ -152,6 +168,18 @@ public class HungarianAlgorithm {
         while (found==null && iterator.hasNext()) {
             Bid bid = iterator.next();
             if (bid.getResource() == resource) {
+                found = bid;
+            }
+        }
+        return found;
+    }
+
+    private Bid findMatchedBidFromTask(Task task) {
+        Bid found = null;
+        Iterator<Bid> iterator = matchedBids.iterator();
+        while (found==null && iterator.hasNext()) {
+            Bid bid = iterator.next();
+            if (bid.getTask() == task) {
                 found = bid;
             }
         }

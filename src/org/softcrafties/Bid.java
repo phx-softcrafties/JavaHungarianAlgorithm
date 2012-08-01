@@ -59,4 +59,8 @@ public class Bid {
         return cost;
     }
 
+    public void setCost(double value) {
+        cost = value;
+    }
+
 }
