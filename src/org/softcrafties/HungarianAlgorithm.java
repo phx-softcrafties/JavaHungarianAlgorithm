@@ -94,7 +94,7 @@ public class HungarianAlgorithm {
             taskPotential.put(task, value);
         }
         for (Resource resource : reachableResources) {
-            double value = resourcePotential.get(resource) + delta;
+            double value = resourcePotential.get(resource) - delta;
             resourcePotential.put(resource, value);
         }
         findTightBids();
@@ -135,9 +135,9 @@ public class HungarianAlgorithm {
     private void visitResources() {
         for (Bid bid : matchedBids) {
             if (resourcesToVisit.contains(bid.getResource())) {
-                Task resource = bid.getTask();
-                reachableTasks.add(resource);
-                tasksToVisit.add(resource);
+                Task task = bid.getTask();
+                reachableTasks.add(task);
+                tasksToVisit.add(task);
             }
         }
         resourcesToVisit.clear();
@@ -238,5 +238,30 @@ public class HungarianAlgorithm {
         double value = taskPotential.get(task) + increment;
         taskPotential.put(task, value);
         findTightBids();
+    }
+
+    public void solve() {
+        int target = resources.size();
+        target = (tasks.size() < target) ? tasks.size() : target;
+        while (matchedBids.size() < target) {
+            visitFromFreeTasks();
+            Resource end = findAlternatingPath();
+            if (end == null) {
+                updatePotential();
+            } else {
+                alternatePath(end);
+            }
+        }
+    }
+
+    public double getTotalCost() {
+        double total = 0.0;
+        for (Resource resource : resources) {
+            total += resourcePotential.get(resource);
+        }
+        for (Task task : tasks) {
+            total += taskPotential.get(task);
+        }
+        return total;
     }
 }

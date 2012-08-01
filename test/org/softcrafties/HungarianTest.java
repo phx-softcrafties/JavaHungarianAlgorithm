@@ -113,4 +113,24 @@ public class HungarianTest {
         assertEquals(expect, taskPotential);
     }
 
+    @Test
+    public void testMinimumCostFromInitialState() {
+        HungarianAlgorithm hungarian = factory.createInitialState();
+        hungarian.solve();
+        double cost = hungarian.getTotalCost();
+        assertEquals(6.0, cost, 1e-14);
+    }
+    
+    @Test
+    public void testOptimalMatchFromInitialState() {
+        HungarianAlgorithm hungarian = factory.createInitialState();
+        hungarian.solve();
+        Set<Bid> solution = hungarian.getMatchedBids();
+        Set<Bid> expect = new HashSet<Bid>();
+        expect.add(factory.jimBathroomBid);
+        expect.add(factory.steveFloorsBid);
+        expect.add(factory.alanWindowsBid); 
+        assertEquals(expect, solution);
+    }
+    
 }
