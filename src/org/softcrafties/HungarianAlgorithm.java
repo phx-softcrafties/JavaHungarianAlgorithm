@@ -21,6 +21,7 @@ public class HungarianAlgorithm {
     private Set<Bid> looseBids;
     private Set<Bid> matchedBids;
     private Set<Bid> tightBids;
+    private Set<Bid> allBids;
 
     public HungarianAlgorithm(Set<Resource> resources, Set<Task> tasks, Set<Bid> bids) {
         this.resources = resources;
@@ -41,9 +42,61 @@ public class HungarianAlgorithm {
             taskPotential.put(task, 0.0);
         }
 
+        allBids = new HashSet<Bid>(bids);
         looseBids = new HashSet<Bid>(bids);
         matchedBids = new HashSet<Bid>(bids.size());
         tightBids = new HashSet<Bid>(bids.size());
+        findTightBids();
+    }
+
+    public void visitFromFreeTasks() {
+        reachableResources.clear();
+        reachableTasks.clear();
+        reachableTasks.addAll(freeTasks);
+        tasksToVisit.addAll(freeTasks);
+        visitTasks();
+    }
+
+    public Resource findAlternatingPath() {
+        Resource endpoint = null;
+        HashSet<Resource> intersection = new HashSet<Resource>(reachableResources);
+        intersection.retainAll(freeResources);
+        if (!intersection.isEmpty()) {
+            endpoint = intersection.iterator().next();
+        }
+        return endpoint;
+    }
+
+    public void alternatePath(Resource start) {
+        freeResources.remove(start);
+        Bid bid = findTightBidFromResource(start);
+        tightBids.remove(bid);
+        matchedBids.add(bid);
+        Task task = bid.getTask();
+        freeTasks.remove(task);
+    }
+
+    public void updatePotential() {
+        double delta = allBids.iterator().next().getCost();
+        for (Bid bid : allBids) {
+            Resource resource = bid.getResource();
+            Task task = bid.getTask();
+            if (!reachableResources.contains(resource)
+                    && reachableTasks.contains(task)) {
+                double netCost = bid.getCost() 
+                        - resourcePotential.get(resource) 
+                        - taskPotential.get(task);
+                delta = (netCost < delta) ? netCost : delta;
+            }
+        }
+        for (Task task : reachableTasks) {
+            double value = taskPotential.get(task) + delta;
+            taskPotential.put(task, value);
+        }
+        for (Resource resource : reachableResources) {
+            double value = resourcePotential.get(resource) + delta;
+            resourcePotential.put(resource, value);
+        }
         findTightBids();
     }
 
@@ -63,6 +116,70 @@ public class HungarianAlgorithm {
                 - resourcePotential.get(bid.getResource())
                 - taskPotential.get(bid.getTask());
         return Math.abs(difference) < 1e-14;
+    }
+
+    private void visitTasks() {
+        for (Bid bid : tightBids) {
+            if (tasksToVisit.contains(bid.getTask())) {
+                Resource resource = bid.getResource();
+                reachableResources.add(resource);
+                resourcesToVisit.add(resource);
+            }
+        }
+        tasksToVisit.clear();
+        if (!resourcesToVisit.isEmpty()) {
+            visitResources();
+        }
+    }
+
+    private void visitResources() {
+        for (Bid bid : matchedBids) {
+            if (resourcesToVisit.contains(bid.getResource())) {
+                Task resource = bid.getTask();
+                reachableTasks.add(resource);
+                tasksToVisit.add(resource);
+            }
+        }
+        resourcesToVisit.clear();
+        if (!tasksToVisit.isEmpty()) {
+            visitTasks();
+        }
+    }
+
+    private Bid findTightBidFromResource(Resource resource) {
+        Bid found = null;
+        Iterator<Bid> iterator = tightBids.iterator();
+        while (found==null && iterator.hasNext()) {
+            Bid bid = iterator.next();
+            if (bid.getResource() == resource) {
+                found = bid;
+            }
+        }
+        return found;
+    }
+
+    public Set<Resource> getUnassignedResources() {
+        return freeResources;
+    }
+
+    public Set<Task> getUnassignedTasks() {
+        return freeTasks;
+    }
+
+    public Set<Task> getReachableTasks() {
+        return reachableTasks;
+    }
+
+    public Set<Resource> getReachableResources() {
+        return reachableResources;
+    }
+
+    public Set<Bid> getMatchedBids() {
+        return matchedBids;
+    }
+
+    public Map<Task, Double> getTaskPotential() {
+        return taskPotential;
     }
 
     public void match(Bid bid) {
@@ -111,42 +228,6 @@ public class HungarianAlgorithm {
         freeTasks.add(task);
     }
 
-    public void visitFromFreeTasks() {
-        reachableResources.clear();
-        reachableTasks.clear();
-        reachableTasks.addAll(freeTasks);
-        tasksToVisit.addAll(freeTasks);
-        visitTasks();
-    }
-
-    public void visitTasks() {
-        for (Bid bid : tightBids) {
-            if (tasksToVisit.contains(bid.getTask())) {
-                Resource resource = bid.getResource();
-                reachableResources.add(resource);
-                resourcesToVisit.add(resource);
-            }
-        }
-        tasksToVisit.clear();
-        if (!resourcesToVisit.isEmpty()) {
-            visitResources();
-        }
-    }
-
-    private void visitResources() {
-        for (Bid bid : matchedBids) {
-            if (resourcesToVisit.contains(bid.getResource())) {
-                Task resource = bid.getTask();
-                reachableTasks.add(resource);
-                tasksToVisit.add(resource);
-            }
-        }
-        resourcesToVisit.clear();
-        if (!tasksToVisit.isEmpty()) {
-            visitTasks();
-        }
-    }
-
     public void increasePotential(Resource resource, double increment) {
         double value = resourcePotential.get(resource) + increment;
         resourcePotential.put(resource, value);
@@ -157,58 +238,5 @@ public class HungarianAlgorithm {
         double value = taskPotential.get(task) + increment;
         taskPotential.put(task, value);
         findTightBids();
-    }
-
-    public Set<Resource> getUnassignedResources() {
-        return freeResources;
-    }
-
-    public Set<Task> getUnassignedTasks() {
-        return freeTasks;
-    }
-
-    public Set<Task> getReachableTasks() {
-        return reachableTasks;
-    }
-
-    public Set<Resource> getReachableResources() {
-        return reachableResources;
-    }
-
-    public Resource findAlternatingPath() {
-        Resource endpoint = null;
-        HashSet<Resource> intersection = new HashSet<Resource>(reachableResources);
-        System.out.println(intersection);
-        intersection.retainAll(freeResources);
-        System.out.println(intersection);
-        if (!intersection.isEmpty()) {
-            endpoint = intersection.iterator().next();
-        }
-        return endpoint;
-    }
-
-    public Set<Bid> getMatchedBids() {
-        return matchedBids;
-    }
-
-    public void alternatePath(Resource start) {
-        freeResources.remove(start);
-        Bid bid = findTightBidFromResource(start);
-        tightBids.remove(bid);
-        matchedBids.add(bid);
-        Task task = bid.getTask();
-        freeTasks.remove(task);
-    }
-
-    public Bid findTightBidFromResource(Resource resource) {
-        Bid found = null;
-        Iterator<Bid> iterator = tightBids.iterator();
-        while (found==null && iterator.hasNext()) {
-            Bid bid = iterator.next();
-            if (bid.getResource() == resource) {
-                found = bid;
-            }
-        }
-        return found;
     }
 }

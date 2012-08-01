@@ -2,7 +2,10 @@ package org.softcrafties;
 
 import static org.junit.Assert.*;
 
+import java.sql.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.Before;
@@ -95,6 +98,19 @@ public class HungarianTest {
         Set<Bid> expect = new HashSet<Bid>();
         expect.add(factory.jimBathroomBid);
         assertEquals(expect, matchedBids);
+    }
+    
+    @Test
+    public void testTaskPotentialAfterUpdateFromIntialState() {
+        HungarianAlgorithm hungarian = factory.createInitialState();
+        hungarian.visitFromFreeTasks();
+        hungarian.updatePotential();
+        Map<Task, Double> taskPotential = hungarian.getTaskPotential();
+        Map<Task, Double> expect = new HashMap<Task, Double>();
+        expect.put(factory.bathroom, 1.0);
+        expect.put(factory.floors, 1.0);
+        expect.put(factory.windows, 1.0);
+        assertEquals(expect, taskPotential);
     }
 
 }
