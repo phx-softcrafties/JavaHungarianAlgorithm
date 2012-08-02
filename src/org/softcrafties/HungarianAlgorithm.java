@@ -22,31 +22,27 @@ public class HungarianAlgorithm {
     private Set<Bid> matchedBids;
     private Set<Bid> tightBids;
     private Set<Bid> allBids;
+    private double totalCost;
 
     public HungarianAlgorithm(Set<Resource> resources, Set<Task> tasks, Set<Bid> bids) {
-        this.resources = resources;
-        freeResources = new HashSet<Resource>(resources);
-        reachableResources = new HashSet<Resource>(resources.size());
-        resourcesToVisit = new HashSet<Resource>(resources.size());
-        resourcePotential = new HashMap<Resource, Double>(resources.size());
-        for (Resource resource : resources) {
-            resourcePotential.put(resource, 0.0);
-        }
-        
-        this.tasks = tasks;
-        freeTasks = new HashSet<Task>(tasks);
-        reachableTasks = new HashSet<Task>(tasks.size());
-        tasksToVisit = new HashSet<Task>(tasks.size());
-        taskPotential = new HashMap<Task, Double>(tasks.size());
-        for (Task task : tasks) {
-            taskPotential.put(task, 0.0);
-        }
+        initializeResources(resources);
+        initializeTasks(tasks);
+        initializeBids(bids);
+    }
 
-        allBids = new HashSet<Bid>(bids);
-        looseBids = new HashSet<Bid>(bids);
-        matchedBids = new HashSet<Bid>(bids.size());
-        tightBids = new HashSet<Bid>(bids.size());
-        findTightBids();
+    public void solve() {
+        totalCost = 0.0;
+        int target = resources.size();
+        target = (tasks.size() < target) ? tasks.size() : target;
+        while (matchedBids.size() < target) {
+            visitFromFreeTasks();
+            Resource end = findAlternatingPath();
+            if (end == null) {
+                updatePotential();
+            } else {
+                alternatePath(end);
+            }
+        }
     }
 
     public void visitFromFreeTasks() {
@@ -102,10 +98,12 @@ public class HungarianAlgorithm {
             }
         }
         for (Task task : reachableTasks) {
+            totalCost += delta;
             double value = taskPotential.get(task) + delta;
             taskPotential.put(task, value);
         }
         for (Resource resource : reachableResources) {
+            totalCost -= delta;
             double value = resourcePotential.get(resource) - delta;
             resourcePotential.put(resource, value);
         }
@@ -186,6 +184,10 @@ public class HungarianAlgorithm {
         return found;
     }
 
+    public double getTotalCost() {
+        return totalCost;
+    }
+
     public Set<Resource> getUnassignedResources() {
         return freeResources;
     }
@@ -208,6 +210,36 @@ public class HungarianAlgorithm {
 
     public Map<Task, Double> getTaskPotential() {
         return taskPotential;
+    }
+
+    public void initializeResources(Set<Resource> resources) {
+        this.resources = resources;
+        freeResources = new HashSet<Resource>(resources);
+        reachableResources = new HashSet<Resource>(resources.size());
+        resourcesToVisit = new HashSet<Resource>(resources.size());
+        resourcePotential = new HashMap<Resource, Double>(resources.size());
+        for (Resource resource : resources) {
+            resourcePotential.put(resource, 0.0);
+        }
+    }
+
+    public void initializeTasks(Set<Task> tasks) {
+        this.tasks = tasks;
+        freeTasks = new HashSet<Task>(tasks);
+        reachableTasks = new HashSet<Task>(tasks.size());
+        tasksToVisit = new HashSet<Task>(tasks.size());
+        taskPotential = new HashMap<Task, Double>(tasks.size());
+        for (Task task : tasks) {
+            taskPotential.put(task, 0.0);
+        }
+    }
+
+    public void initializeBids(Set<Bid> bids) {
+        allBids = new HashSet<Bid>(bids);
+        looseBids = new HashSet<Bid>(bids);
+        matchedBids = new HashSet<Bid>(bids.size());
+        tightBids = new HashSet<Bid>(bids.size());
+        findTightBids();
     }
 
     public void match(Bid bid) {
@@ -266,30 +298,5 @@ public class HungarianAlgorithm {
         double value = taskPotential.get(task) + increment;
         taskPotential.put(task, value);
         findTightBids();
-    }
-
-    public void solve() {
-        int target = resources.size();
-        target = (tasks.size() < target) ? tasks.size() : target;
-        while (matchedBids.size() < target) {
-            visitFromFreeTasks();
-            Resource end = findAlternatingPath();
-            if (end == null) {
-                updatePotential();
-            } else {
-                alternatePath(end);
-            }
-        }
-    }
-
-    public double getTotalCost() {
-        double total = 0.0;
-        for (Resource resource : resources) {
-            total += resourcePotential.get(resource);
-        }
-        for (Task task : tasks) {
-            total += taskPotential.get(task);
-        }
-        return total;
     }
 }
